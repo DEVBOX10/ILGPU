@@ -15,7 +15,6 @@ using ILGPU.Resources;
 using ILGPU.Util;
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Emit;
 using static ILGPU.Runtime.OpenCL.CLAPI;
@@ -122,14 +121,6 @@ namespace ILGPU.Runtime.OpenCL
         /// <summary>
         /// Detects all OpenCL accelerators.
         /// </summary>
-        [SuppressMessage(
-            "Microsoft.Performance",
-            "CA1810:InitializeReferenceTypeStaticFieldsInline",
-            Justification = "Complex initialization logic is required in this case")]
-        [SuppressMessage(
-            "Microsoft.Design",
-            "CA1031:Do not catch general exception types",
-            Justification = "Must be caught to ignore external driver errors")]
         static CLAccelerator()
         {
             var accelerators = ImmutableArray.CreateBuilder<CLAcceleratorId>();
@@ -321,11 +312,6 @@ namespace ILGPU.Runtime.OpenCL
         /// <summary>
         /// Initializes major vendor features.
         /// </summary>
-        [SuppressMessage(
-            "Globalization",
-            "CA1307:Specify StringComparison",
-            Justification = "string.Contains(string, StringComparison) not available " +
-            "in net47 and netcoreapp2.0")]
         private void InitVendorFeatures()
         {
             // Check major vendor features
@@ -393,10 +379,6 @@ namespace ILGPU.Runtime.OpenCL
         /// Initializes support for sub groups.
         /// </summary>
         /// <param name="acceleratorId">The current accelerator id.</param>
-        [SuppressMessage(
-            "Microsoft.Design",
-            "CA1031:Do not catch general exception types",
-            Justification = "Must be caught to setup internal flags")]
         private void InitSubGroupSupport(CLAcceleratorId acceleratorId)
         {
             // Check sub group support
@@ -677,7 +659,11 @@ namespace ILGPU.Runtime.OpenCL
 
             // Map all kernel arguments
             var argumentMapper = Backend.ArgumentMapper;
-            argumentMapper.Map(emitter, kernelLocal, entryPoint);
+            argumentMapper.Map(
+                emitter,
+                kernelLocal,
+                Context.TypeContext,
+                entryPoint);
 
             // Load current driver API
             emitter.EmitCall(GetCLAPIMethod);
